@@ -27,6 +27,10 @@ import ListRoute from "./listRoute.js";
 import songRoutes from "./uploadRoute.js";
 import fetchsongs from "./getSong.js";
 
+import jwt from "jsonwebtoken";
+
+const JWT_SECRET = process.env.JWT_SECRET || "changeme";
+
 
 
 
@@ -65,7 +69,7 @@ function authMiddleware(req, res, next) {
   }
 }
 
-app.get('/me', authMiddleware, (req, res) => {
+app.get('/api/admin/me', authMiddleware, (req, res) => {
   const userId = req.user.sub;
   const user = users.find(u => u.id === userId);
   if (!user) return res.status(404).json({ error: 'User not found' });
