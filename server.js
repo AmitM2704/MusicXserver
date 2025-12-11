@@ -69,12 +69,18 @@ function authMiddleware(req, res, next) {
   }
 }
 
+// safe /api/admin/me that returns token payload (no DB required)
 app.get('/api/admin/me', authMiddleware, (req, res) => {
-  const userId = req.user.sub;
-  const user = users.find(u => u.id === userId);
-  if (!user) return res.status(404).json({ error: 'User not found' });
-  res.json({ user: { id: user.id, name: user.name, email: user.email } });
+  try {
+    // req.user is set by authMiddleware (the decoded JWT payload)
+    // return the payload directly — contains claims such as `sub` / `email`
+    return res.json({ user: req.user });
+  } catch (err) {
+    console.error("/api/admin/me handler error:", err);
+    return res.status(500).json({ error: "Internal server error" });
+  }
 });
+
 
 app.get("/",(req,res)=>{
       const actualPort = req.socket.localPort;
