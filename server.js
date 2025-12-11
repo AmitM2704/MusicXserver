@@ -49,6 +49,28 @@ app.use("/api/admin",ListRoute)
 app.use("/api/admin", songRoutes);
 app.use("/api", fetchsongs);
 
+function authMiddleware(req, res, next) {
+  const auth = req.headers.authorization;
+  if (!auth) return res.status(401).json({ error: 'No authorization header' });
+  const parts = auth.split(' ');
+  if (parts.length !== 2 || parts[0] !== 'Bearer') return res.status(401).json({ error: 'Invalid authorization' });
+
+  const token = parts[1];
+  try {
+    const payload = jwt.verify(token, JWT_SECRET);
+    req.user = payload; // contains sub/email
+    next();
+  } catch (err) {
+    return res.status(401).json({ error: 'Invalid token' });
+  }
+}
+
+app.get('/me', authMiddleware, (req, res) => {
+  const userId = req.user.sub;
+  const user = users.find(u => u.id === userId);
+  if (!user) return res.status(404).json({ error: 'User not found' });
+  res.json({ user: { id: user.id, name: user.name, email: user.email } });
+});
 
 app.get("/",(req,res)=>{
       const actualPort = req.socket.localPort;
