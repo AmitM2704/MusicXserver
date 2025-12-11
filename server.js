@@ -49,7 +49,7 @@ app.use("/api/admin",ListRoute)
 app.use("/api/admin", songRoutes);
 app.use("/api", fetchsongs);
 
-app.get("/",(req,res)=>{res.send("HELLO!")});
+app.get("/",(req,res)=>{res.send("HELLO! Port=",PORT)});
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT,()=>{console.log("OK")})
