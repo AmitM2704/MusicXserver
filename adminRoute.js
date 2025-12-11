@@ -87,26 +87,46 @@ router.post('/signup', async (req, res) => {
 });
 
 //LoginRoute
-router.post('/login', async (req, res) => {
-    console.log("Login body:", req.body);
-    
+// LoginRoute (safe)
+router.post('/login', async (req, res, next) => {
+  console.log("Login body:", req.body);
 
   try {
-    const { name,email, password } = req.body;
+    // Safe destructure in case req.body is undefined
+    const { email, password } = req.body || {};
+
+    // Simple validation
+    if (!email || !password) {
+      console.log("Login missing fields:", { email, password });
+      return res.status(400).json({ message: "email and password are required" });
+    }
+
+    // Make sure DB/model is available
+    if (!Admin || typeof Admin.findOne !== "function") {
+      console.error("Admin model is not available or not exported correctly.");
+      return res.status(500).json({ message: "Server configuration error (Admin model)" });
+    }
 
     // Find user by email
-    const user = await Admin.findOne({ email });
-    if (!user) return res.status(400).json({ message: "Invalid credentials" });
+    const user = await Admin.findOne({ email }).exec();
+    if (!user) {
+      console.log("Login failed — user not found for:", email);
+      return res.status(400).json({ message: "Invalid credentials" });
+    }
 
     // Compare passwords
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
+    if (!isMatch) {
+      console.log("Login failed — incorrect password for:", email);
+      return res.status(400).json({ message: "Invalid credentials" });
+    }
 
-    // Create JWT token
-    const token = jwt.sign({ id: user._id }, "ygjvhbku", { expiresIn: "1d" });
-    
+    // Use env JWT secret (fallback to test string only)
+    const jwtSecret = process.env.JWT_SECRET || "dev_jwt_secret_should_be_changed";
+    const token = jwt.sign({ id: user._id }, jwtSecret, { expiresIn: "1d" });
 
-    res.json({
+    // Success
+    return res.json({
       token,
       user: {
         id: user._id,
@@ -116,11 +136,10 @@ router.post('/login', async (req, res) => {
       }
     });
   } catch (err) {
-    res.status(500).json({ error: err.message });
-    console.error("Login error:", err);
-
+    console.error("Login error:", err && err.stack ? err.stack : err);
+    // forward to global error handler or return generic 500
+    return res.status(500).json({ message: "Internal server error" });
   }
 });
-
 
 export default router;
