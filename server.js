@@ -50,5 +50,6 @@ app.use("/api/admin", songRoutes);
 app.use("/api", fetchsongs);
 
 app.get("/",(req,res)=>{res.send("HELLO!")});
+const PORT = process.env.PORT || 5000;
 
-app.listen(5000,()=>{console.log("OK")})
+app.listen(PORT,()=>{console.log("OK")})
