@@ -52,7 +52,7 @@ app.use("/api", fetchsongs);
 
 app.get("/",(req,res)=>{
       const actualPort = req.socket.localPort;
-    res.send(`HELLO! Port=${actualport}`)
+    res.send(`HELLO! Port=${actualPort}`)
 
 });
 const PORT = process.env.PORT || 5000;
