@@ -48,8 +48,11 @@ app.use('/api/admin', adminRoutes);
 app.use("/api/admin",ListRoute)
 app.use("/api/admin", songRoutes);
 app.use("/api", fetchsongs);
+  const actualPort = req.socket.localPort;
 
-app.get("/",(req,res)=>{res.send("HELLO! Port=",PORT)});
+app.get("/",(req,res)=>{res.send(`HELLO! Port=${actualport}`)});
 const PORT = process.env.PORT || 5000;
+
+
 
 app.listen(PORT,()=>{console.log("OK")})
